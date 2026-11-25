@@ -1,0 +1,58 @@
+cd ~
+cat > endy << 'ENDOFFILE'
+#!/bin/bash
+R='\033[0;31m'; G='\033[0;32m'; Y='\033[1;33m'; C='\033[0;36m'; W='\033[1;37m'; N='\033[0m'
+show_banner() {
+clear
+echo -e "${C}  _____ _   _ ______  __   __${N}"
+echo -e "${C} | ____| \\ | |  _ \\ \\ / /${N}"
+echo -e "${C} |  _| |  \\| | | | | \\ V /${N}"
+echo -e "${C} | |___| |\\  | |_| |  | |${N}"
+echo -e "${C} |_____|_| \\_|____/  |_|${N}"
+echo ""
+echo -e "${W}  Endy v6.2 - FINAL + 2 Features${N}"
+echo -e "${C}  ============================${N}"
+echo -e "${Y}  Type help${N}"
+echo ""
+}
+show_banner
+scan_one() {
+  T=$1
+  echo -e "${W}[*] Scanning $T ...${N}"
+  curl -s -k -L "https://$T/.env" --max-time 10 | grep -qi "DB_PASSWORD" && echo -e "${R}[HIGH] .env EXPOSED!${N}" || echo -e "${G}[OK] .env clean${N}"
+  curl -s -k -L "https://$T/.git/config" --max-time 10 | grep -qi "repositoryformatversion" && echo -e "${R}[HIGH] .git EXPOSED!${N}" || echo -e "${G}[OK] .git clean${N}"
+  curl -s -k -L -X POST "https://$T/api/automation/builder" -H "Content-Type: application/json" -d '{"stepName":"ENDY"}' --max-time 10 | grep -qi "Newtonsoft" && echo -e "${R}[CRITICAL] 3000 FOUND!${N}" || echo -e "${G}[OK] Deserialization clean${N}"
+  echo -e "${C}[Endy] Done - END${N}"
+}
+port_scan() {
+  T=$1
+  echo -e "${W}[*] Port Scan $T ...${N}"
+  for P in 21 22 80 443 8080 3306; do
+    timeout 3 bash -c "echo > /dev/tcp/$T/$P" 2>/dev/null && echo -e "${G}[OPEN] Port $P open${N}" || echo -e "${R}[CLOSED] Port $P closed${N}"
+  done
+}
+sub_scan() {
+  T=$1
+  echo -e "${W}[*] Finding Subdomains for $T ...${N}"
+  for S in www mail api blog shop dev test admin; do
+    curl -s -k -L --max-time 5 "https://$S.$T" -o /dev/null -w "%{http_code}" | grep -q "200\|301\|302" && echo -e "${G}[FOUND] $S.$T${N}" || echo -e "${R}[NOT FOUND] $S.$T${N}"
+  done
+}
+while true; do
+  echo -n -e "${C}Endy> ${N}"
+  read -r CMD ARG1
+  case "$CMD" in
+    scan) scan_one "$ARG1";;
+    port) port_scan "$ARG1";;
+    sub) sub_scan "$ARG1";;
+    banner) show_banner;;
+    help) echo "scan target.com - scan vulns"; echo "port target.com - port scan"; echo "sub target.com - subdomains"; echo "banner - logo"; echo "exit - exit";;
+    clear) show_banner;;
+    exit) echo -e "${C}Bye - END${N}"; break;;
+    "") ;;
+    *) echo -e "${Y}Unknown! Type help${N}";;
+  esac
+done
+ENDOFFILE
+chmod +x endy
+./endy
