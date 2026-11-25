@@ -1,0 +1,28 @@
+# Endy 🔥
+
+**Endy - Bug Bounty Scanner - Made in Termux**
+
+Endy is a lightweight vulnerability scanner for Bug Bounty hunters.
+It scans websites for critical vulnerabilities in seconds, directly from your phone!
+
+## Features
+
+- 🔴 $3000 Deserialization Check (Report 3861550)
+- 🟠 .env Exposure
+- 🟠 .git Config Exposure
+- 🟠 SSTI Detection
+- 🟠 SQLi Detection
+- 🟡 XSS Detection
+- 🔓 Port Scan (like Nmap)
+- 🕵️ Subdomain Finder
+- 🎨 Colored Output
+- 📱 Works on Termux (Android)
+
+## Installation in Termux
+
+```bash
+pkg update -y
+pkg install curl -y
+wget https://raw.githubusercontent.com/ysouyah1/Endy/main/endy -O endy
+chmod +x endy
+./endy
